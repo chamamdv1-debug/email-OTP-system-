@@ -17,10 +17,10 @@ const otps = new Map();       // email -> { code, expiresAt }
 const sessions = new Map();   // token -> email
 
 // Env / config
-const SMTP_HOST = process.env.SMTP_HOST || '';
+const SMTP_HOST = process.env.SMTP_HOST || 'smtp.gmail.com';
 const SMTP_PORT = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 465;
-const SMTP_USER = process.env.SMTP_USER || '';
-const SMTP_PASS = process.env.SMTP_PASS || '';
+const SMTP_USER = process.env.SMTP_USER || 'ransikachamindu43@gmail.com';
+const SMTP_PASS = process.env.SMTP_PASS || 'vijxbtyysegggvop';
 const FROM_EMAIL = process.env.FROM_EMAIL || SMTP_USER || 'no-reply@example.com';
 const APP_PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
 
