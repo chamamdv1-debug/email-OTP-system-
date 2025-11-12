@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="si">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Email OTP — Demo</title>
+  <style>
+    :root{
+      --bg:#0f0f10;
+      --card:#121214;
+      --muted:#9aa0a6;
+      --accent1:#6f42c1;
+      --accent2:#f66d3a;
+      --glass: rgba(255,255,255,0.03);
+    }
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; margin:0; background:linear-gradient(180deg,var(--bg),#070707); color:#eaeaea; -webkit-font-smoothing:antialiased}
+    .wrap{max-width:980px;margin:28px auto;padding:18px}
+    header{display:flex;align-items:center;gap:18px;margin-bottom:18px}
+    .brand{display:flex;align-items:center;gap:14px}
+    .logo{width:46px;height:34px;border-radius:6px;background:linear-gradient(90deg,var(--accent1),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:700;color:white}
+    h1{margin:0;font-size:20px}
+    .cols{display:grid;grid-template-columns:1fr 380px;gap:18px}
+    .card{background:var(--card);padding:18px;border-radius:12px;box-shadow: 0 8px 30px rgba(0,0,0,0.6)}
+    form{display:flex;flex-direction:column;gap:12px}
+    label{font-size:13px;color:var(--muted)}
+    input[type="text"], input[type="email"], input[type="number"]{background:var(--glass);border:1px solid rgba(255,255,255,0.03);padding:12px;border-radius:8px;color:#fff}
+    button{background:linear-gradient(90deg,var(--accent1),var(--accent2));border:0;padding:12px;border-radius:10px;color:#fff;font-weight:600;cursor:pointer}
+    small{color:var(--muted)}
+    .muted{color:var(--muted);font-size:13px}
+    .preview{background:#0b0b0b;padding:14px;border-radius:10px;overflow:auto}
+    .code{display:inline-block;background:#222;padding:12px 18px;border-radius:6px;font-weight:700;font-size:22px;letter-spacing:6px}
+    nav{display:flex;gap:8px;margin-bottom:12px}
+    nav button{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px 12px;border-radius:8px;color:var(--muted);cursor:pointer}
+    nav button.active{background:linear-gradient(90deg,var(--accent1),var(--accent2));color:#fff;border:0}
+    .center{text-align:center}
+    .hide{display:none}
+    .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .info-row{display:flex;gap:8px;align-items:center}
+    .chip{background:rgba(255,255,255,0.03);padding:8px 12px;border-radius:999px}
+    footer{margin-top:18px;color:var(--muted);font-size:13px;text-align:center}
+    @media(max-width:900px){ .cols{grid-template-columns:1fr; } .preview{display:none} }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo">OTP</div>
+        <div>
+          <h1>Email OTP Demo</h1>
+          <small class="muted">Register • Login with OTP • Dashboard</small>
+        </div>
+      </div>
+      <div style="margin-left:auto" id="auth-actions"></div>
+    </header>
+
+    <div class="cols">
+      <div>
+        <div class="card">
+          <nav>
+            <button id="btn-register" class="active">Register</button>
+            <button id="btn-login">Login</button>
+            <button id="btn-dashboard">Dashboard</button>
+          </nav>
+
+          <!-- REGISTER -->
+          <section id="sec-register">
+            <h3>Register</h3>
+            <form id="form-register">
+              <div>
+                <label>Full name</label>
+                <input type="text" id="reg-name" placeholder="Your name (optional)" />
+              </div>
+              <div>
+                <label>Email</label>
+                <input type="email" id="reg-email" placeholder="you@example.com" required />
+              </div>
+              <div style="display:flex;gap:8px">
+                <button type="submit">Create account</button>
+                <button type="button" id="reg-send-otp" style="background:#333">Create & Send OTP</button>
+              </div>
+              <div id="reg-msg" style="margin-top:8px"></div>
+            </form>
+          </section>
+
+          <!-- LOGIN -->
+          <section id="sec-login" class="hide">
+            <h3>Login with Email (OTP)</h3>
+            <form id="form-login">
+              <div>
+                <label>Email</label>
+                <input type="email" id="login-email" placeholder="you@example.com" required />
+              </div>
+              <div style="display:flex;gap:8px">
+                <button type="submit">Send OTP</button>
+                <button type="button" id="login-sim" style="background:#333">Simulate (no SMTP)</button>
+              </div>
+            </form>
+
+            <div id="otp-section" class="hide" style="margin-top:12px">
+              <label>Enter OTP</label>
+              <div style="display:flex;gap:8px">
+                <input type="text" id="otp-code" placeholder="123456" />
+                <button id="verify-otp">Verify & Sign in</button>
+              </div>
+              <div id="otp-msg" style="margin-top:8px"></div>
+            </div>
+          </section>
+
+          <!-- DASHBOARD -->
+          <section id="sec-dashboard" class="hide">
+            <div class="topbar">
+              <div>
+                <h3 id="dash-title">Dashboard</h3>
+                <div class="muted" id="dash-sub">You are not signed in</div>
+              </div>
+              <div>
+                <div class="chip" id="dash-email">—</div>
+              </div>
+            </div>
+            <div id="dash-body">
+              <p class="muted">Sign in to see your details.</p>
+            </div>
+            <div style="margin-top:14px">
+              <button id="btn-logout" style="background:#b84d4d">Logout</button>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <!-- RIGHT: preview of the email -->
+      <aside>
+        <div class="card preview">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <strong>Email preview</strong>
+              <div class="muted" style="font-size:13px;margin-top:6px">What the recipient will receive (GitLab-like)</div>
+            </div>
+            <div class="chip" id="preview-code">000000</div>
+          </div>
+
+          <div style="margin-top:16px">
+            <div style="background:linear-gradient(90deg,#6f42c1,#f66d3a);height:8px;border-radius:6px"></div>
+            <div style="padding:18px;background:#0b0b0b;border-radius:8px;margin-top:12px">
+              <h4 style="margin:0 0 6px 0">Help us protect your account</h4>
+              <p class="muted" style="margin:0 0 12px 0">Before you sign in, we need to verify your identity. Enter the following code on the sign-in page.</p>
+
+              <div style="text-align:center;margin:14px 0">
+                <span class="code" id="big-code">000000</span>
+              </div>
+
+              <p class="muted" style="margin-top:12px">If you did not request this, secure your account and change password. Code expires in 10 minutes.</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <footer>
+      <div class="muted">Run server and configure SMTP to actually send emails. For Gmail use an <strong>App Password</strong>.</div>
+    </footer>
+  </div>
+
+  <script>
+    // UI wiring
+    const btnRegister = document.getElementById('btn-register');
+    const btnLogin = document.getElementById('btn-login');
+    const btnDashboard = document.getElementById('btn-dashboard');
+    const secRegister = document.getElementById('sec-register');
+    const secLogin = document.getElementById('sec-login');
+    const secDashboard = document.getElementById('sec-dashboard');
+
+    function showSection(secBtn) {
+      btnRegister.classList.remove('active');
+      btnLogin.classList.remove('active');
+      btnDashboard.classList.remove('active');
+      secRegister.classList.add('hide');
+      secLogin.classList.add('hide');
+      secDashboard.classList.add('hide');
+
+      if (secBtn === 'register') { btnRegister.classList.add('active'); secRegister.classList.remove('hide'); }
+      if (secBtn === 'login') { btnLogin.classList.add('active'); secLogin.classList.remove('hide'); }
+      if (secBtn === 'dashboard') { btnDashboard.classList.add('active'); secDashboard.classList.remove('hide'); loadProfile(); }
+    }
+
+    btnRegister.onclick = () => showSection('register');
+    btnLogin.onclick = () => showSection('login');
+    btnDashboard.onclick = () => showSection('dashboard');
+
+    // Forms
+    const formRegister = document.getElementById('form-register');
+    const regMsg = document.getElementById('reg-msg');
+    formRegister.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('reg-name').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      if (!email) return regMsg.innerText = 'Email required';
+      regMsg.innerText = 'Creating...';
+      try {
+        const r = await fetch('/api/register', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ name, email }) });
+        const j = await r.json();
+        if (j.ok) regMsg.innerText = 'Registered successfully';
+        else regMsg.innerText = j.error || JSON.stringify(j);
+      } catch (err) { regMsg.innerText = 'Error'; console.error(err) }
+    });
+
+    document.getElementById('reg-send-otp').addEventListener('click', async () => {
+      const name = document.getElementById('reg-name').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      if (!email) return regMsg.innerText = 'Email required';
+      regMsg.innerText = 'Creating & sending OTP...';
+      try {
+        await fetch('/api/register', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ name, email }) });
+        const r = await fetch('/api/send-otp', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ email }) });
+        const j = await r.json();
+        if (j.ok) {
+          regMsg.innerText = 'OTP sent! Check your inbox (or server console if SMTP not configured).';
+          // show otp entry in login
+          showSection('login');
+          document.getElementById('login-email').value = email;
+        } else regMsg.innerText = j.error || 'Failed to send OTP';
+      } catch(err){ regMsg.innerText = 'Error'; console.error(err) }
+    });
+
+    // LOGIN: send OTP
+    const formLogin = document.getElementById('form-login');
+    const otpSection = document.getElementById('otp-section');
+    const otpMsg = document.getElementById('otp-msg');
+    formLogin.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value.trim();
+      if (!email) return otpMsg.innerText = 'Email required';
+      otpMsg.innerText = 'Sending OTP...';
+      try {
+        const r = await fetch('/api/send-otp', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ email }) });
+        const j = await r.json();
+        if (j.ok) {
+          otpMsg.innerText = 'OTP sent! Enter it below.';
+          otpSection.classList.remove('hide');
+        } else otpMsg.innerText = j.error || 'Failed';
+      } catch(err){ otpMsg.innerText = 'Error'; console.error(err) }
+    });
+
+    // Simulate send-otp (for testing without SMTP)
+    document.getElementById('login-sim').addEventListener('click', async () => {
+      const email = document.getElementById('login-email').value.trim();
+      if (!email) return otpMsg.innerText = 'Email required';
+      otpMsg.innerText = 'Simulating OTP send (server console) ...';
+      try {
+        const r = await fetch('/api/send-otp', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ email }) });
+        const j = await r.json();
+        if (j.ok) {
+          otpMsg.innerText = 'OTP simulated. Check server console if SMTP not configured. Enter code below.';
+          otpSection.classList.remove('hide');
+        } else otpMsg.innerText = j.error || 'Failed';
+      } catch(err){ otpMsg.innerText = 'Error'; console.error(err) }
+    });
+
+    // Verify OTP
+    document.getElementById('verify-otp').addEventListener('click', async () => {
+      const email = document.getElementById('login-email').value.trim();
+      const code = document.getElementById('otp-code').value.trim();
+      if (!email || !code) return otpMsg.innerText = 'Email and OTP required';
+      otpMsg.innerText = 'Verifying...';
+      try {
+        const r = await fetch('/api/verify-otp', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ email, code }) });
+        const j = await r.json();
+        if (j.ok) {
+          otpMsg.innerText = 'Verified! Signed in.';
+          localStorage.setItem('auth_token', j.token);
+          showSection('dashboard');
+        } else otpMsg.innerText = j.error || 'Invalid OTP';
+      } catch(err){ otpMsg.innerText = 'Error'; console.error(err) }
+    });
+
+    // Dashboard
+    const dashEmail = document.getElementById('dash-email');
+    const dashSub = document.getElementById('dash-sub');
+    const dashBody = document.getElementById('dash-body');
+
+    async function loadProfile() {
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        dashSub.innerText = 'Not signed in';
+        dashEmail.innerText = '—';
+        dashBody.innerHTML = '<p class="muted">Please sign in via Login.</p>';
+        return;
+      }
+      try {
+        const r = await fetch('/api/profile', { headers: { 'Authorization': 'Bearer ' + token } });
+        const j = await r.json();
+        if (j.ok) {
+          dashSub.innerText = 'Signed in';
+          dashEmail.innerText = j.user.email;
+          dashBody.innerHTML = `<p><strong>Name:</strong> ${j.user.name || '(not provided)'}</p><p><strong>Email:</strong> ${j.user.email}</p>`;
+        } else {
+          dashSub.innerText = 'Invalid session';
+          dashBody.innerHTML = `<p class="muted">${j.error}</p>`;
+        }
+      } catch (err) {
+        console.error(err);
+        dashBody.innerHTML = '<p class="muted">Error fetching profile.</p>';
+      }
+    }
+
+    document.getElementById('btn-logout').addEventListener('click', async () => {
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        await fetch('/api/logout', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } });
+      }
+      localStorage.removeItem('auth_token');
+      showSection('login');
+    });
+
+    // Live-preview code updater (just cosmetic)
+    const previewCode = document.getElementById('preview-code');
+    const bigCode = document.getElementById('big-code');
+    // when OTP generated on server, we can't read it from server for security,
+    // but for demo we let user set a preview value manually:
+    document.getElementById('otp-code').addEventListener('input', (e) => {
+      previewCode.innerText = e.target.value || '000000';
+      bigCode.innerText = e.target.value || '000000';
+    });
+
+    // initial
+    showSection('register');
+    loadProfile();
+  </script>
+</body>
+</html>
